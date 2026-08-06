@@ -1,0 +1,542 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FireWave — Something's Coming</title>
+
+ 
+<link rel="icon" type="image/png" href="favicon-dark.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0f;
+    color: #f0f0f0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  canvas#bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .logo {
+    margin-top: 32px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ff6b35, #f7931e, #ff6b35);
+    background-size: 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2.5s linear infinite;
+  }
+  @keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+
+  .tagline {
+    margin-top: 8px;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .game-section {
+    margin-top: 36px;
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .game-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,107,53,0.6);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .game-title {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .game-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  /* WAVE RHYTHM GAME */
+  #wave-canvas {
+    width: 100%;
+    height: 180px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.3);
+    display: block;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .game-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+  }
+
+  .stat-box {
+    text-align: center;
+  }
+  .stat-box .val {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ff6b35;
+    line-height: 1;
+  }
+  .stat-box .lbl {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .tap-btn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 12px 28px;
+    cursor: pointer;
+    transition: transform 0.08s, box-shadow 0.08s;
+    box-shadow: 0 0 20px rgba(255,107,53,0.4);
+  }
+  .tap-btn:active { transform: scale(0.94); box-shadow: 0 0 8px rgba(255,107,53,0.2); }
+
+  .instructions {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,107,53,0.2), transparent);
+    margin: 32px 0;
+  }
+
+  /* SUGGEST SECTION */
+  .suggest-section {
+    width: 100%;
+    text-align: center;
+  }
+
+  .suggest-section h2 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 6px;
+  }
+
+  .suggest-section p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .suggest-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    padding: 9px 12px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .chip:hover, .chip.active {
+    background: rgba(255,107,53,0.1);
+    border-color: rgba(255,107,53,0.4);
+    color: #ff9060;
+  }
+
+  .email-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,107,53,0.1);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: #ff9060;
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .email-link:hover {
+    background: rgba(255,107,53,0.2);
+    border-color: rgba(255,107,53,0.6);
+  }
+
+  .fire-dot {
+    width: 6px; height: 6px;
+    background: #ff6b35;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:0.4;transform:scale(0.6)}
+  }
+
+  .footer {
+    margin-top: 40px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div class="container">
+  <div class="logo">FireWave</div>
+  <div class="tagline">Something's coming</div>
+
+  <div class="game-section">
+    <div class="game-label">kill time here</div>
+    <div class="game-title">Wave Rider</div>
+    <div class="game-sub">Tap the peak. Don't hit the floor.</div>
+
+    <canvas id="wave-canvas" width="440" height="180"></canvas>
+
+    <div class="game-controls">
+      <div class="stat-box">
+        <div class="val" id="score">0</div>
+        <div class="lbl">Score</div>
+      </div>
+      <button class="tap-btn" id="tap-btn">TAP</button>
+      <div class="stat-box">
+        <div class="val" id="best">0</div>
+        <div class="lbl">Best</div>
+      </div>
+    </div>
+
+    <div class="instructions" id="instructions">Tap the button (or anywhere) when the dot is near the peak<br>Miss the peak → lose a life &nbsp;·&nbsp; Hit the floor → game over</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="suggest-section">
+    <h2>What should this be?</h2>
+    <p>We're figuring it out. Tell us what you'd love to see here.</p>
+
+    <!-- <div class="suggest-grid">
+      <div class="chip" onclick="toggleChip(this)">A portfolio</div>
+      <div class="chip" onclick="toggleChip(this)">A product launch</div>
+      <div class="chip" onclick="toggleChip(this)">A creative studio</div>
+      <div class="chip" onclick="toggleChip(this)">A game / toy</div>
+      <div class="chip" onclick="toggleChip(this)">A blog / zine</div>
+      <div class="chip" onclick="toggleChip(this)">Something else</div>
+    </div> -->
+
+    <a class="email-link" href="mailto:admin@firewave.in?subject=FireWave idea&body=I think this should be...">
+      <span class="fire-dot"></span>
+      admin@firewave.in
+    </a>
+  </div>
+
+  <div class="footer">FIREWAVE.IN &nbsp;·&nbsp; HOLDING PAGE</div>
+</div>
+
+<script>
+// ─── BACKGROUND PARTICLE CANVAS ───────────────────────────────────────────
+const bgC = document.getElementById('bg');
+const bgX = bgC.getContext('2d');
+let W, H, particles = [];
+
+function resizeBg() {
+  W = bgC.width = window.innerWidth;
+  H = bgC.height = window.innerHeight;
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
+
+for (let i = 0; i < 55; i++) {
+  particles.push({
+    x: Math.random() * 1200,
+    y: Math.random() * 800,
+    r: Math.random() * 1.5 + 0.3,
+    sx: (Math.random() - 0.5) * 0.3,
+    sy: (Math.random() - 0.5) * 0.2,
+    a: Math.random()
+  });
+}
+
+function drawBg() {
+  bgX.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    p.x += p.sx; p.y += p.sy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    p.a = 0.3 + 0.3 * Math.sin(Date.now() * 0.001 + p.x);
+    bgX.beginPath();
+    bgX.arc(p.x * W / 1200, p.y * H / 800, p.r, 0, Math.PI * 2);
+    bgX.fillStyle = `rgba(255,107,53,${p.a * 0.5})`;
+    bgX.fill();
+  });
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// ─── WAVE RIDER GAME ───────────────────────────────────────────────────────
+const wc = document.getElementById('wave-canvas');
+const wx = wc.getContext('2d');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const instrEl = document.getElementById('instructions');
+
+let score = 0, best = 0, lives = 3;
+let gameState = 'idle'; // idle | playing | dead
+let phase = 0, speed = 0.025;
+let dotY = 90, dotX = 60;
+let trail = [];
+let shakeT = 0;
+
+const CW = 440, CH = 180;
+const MID = CH / 2;
+const AMP = 55;
+
+function waveY(t) {
+  return MID - AMP * Math.sin(t) - 18 * Math.sin(2.3 * t + 0.5);
+}
+
+function resetGame() {
+  score = 0; lives = 3; phase = 0; speed = 0.025;
+  trail = []; gameState = 'playing';
+  scoreEl.textContent = '0';
+  instrEl.textContent = 'Tap when the dot nears the peak! Lives: ♥♥♥';
+}
+
+function drawGame() {
+  wx.clearRect(0, 0, CW, CH);
+
+  // shake offset
+  let ox = 0, oy = 0;
+  if (shakeT > 0) { ox = (Math.random()-0.5)*6; oy = (Math.random()-0.5)*6; shakeT--; }
+
+  wx.save();
+  wx.translate(ox, oy);
+
+  // floor glow
+  wx.fillStyle = 'rgba(255,30,30,0.04)';
+  wx.fillRect(0, CH - 22, CW, 22);
+  wx.fillStyle = 'rgba(255,50,50,0.3)';
+  wx.fillRect(0, CH - 3, CW, 3);
+
+  if (gameState === 'idle') {
+    wx.fillStyle = 'rgba(255,255,255,0.15)';
+    wx.font = '14px system-ui';
+    wx.textAlign = 'center';
+    wx.fillText('Tap to start', CW/2, CH/2 + 5);
+    wx.restore();
+    return;
+  }
+
+  if (gameState === 'dead') {
+    wx.fillStyle = 'rgba(255,80,50,0.85)';
+    wx.font = 'bold 18px system-ui';
+    wx.textAlign = 'center';
+    wx.fillText('GAME OVER — ' + score + ' pts', CW/2, CH/2 - 10);
+    wx.fillStyle = 'rgba(255,255,255,0.4)';
+    wx.font = '12px system-ui';
+    wx.fillText('Tap to retry', CW/2, CH/2 + 14);
+    wx.restore();
+    return;
+  }
+
+  // wave path
+  wx.beginPath();
+  for (let x = 0; x <= CW; x += 2) {
+    const t = phase - (CW - x) * 0.018;
+    const y = waveY(t);
+    x === 0 ? wx.moveTo(x, y) : wx.lineTo(x, y);
+  }
+  wx.strokeStyle = 'rgba(255,107,53,0.35)';
+  wx.lineWidth = 1.5;
+  wx.stroke();
+
+  // wave fill
+  wx.lineTo(CW, CH); wx.lineTo(0, CH);
+  wx.closePath();
+  const grad = wx.createLinearGradient(0, 0, 0, CH);
+  grad.addColorStop(0, 'rgba(255,107,53,0.08)');
+  grad.addColorStop(1, 'rgba(255,30,30,0.02)');
+  wx.fillStyle = grad;
+  wx.fill();
+
+  // danger zone lines
+  const peakY = waveY(phase);
+  const peakZone = [peakY - 22, peakY + 22];
+
+  // target zone hint (subtle arc around peak on right)
+  wx.beginPath();
+  wx.arc(dotX, peakY, 18, 0, Math.PI * 2);
+  wx.strokeStyle = 'rgba(80,255,160,0.12)';
+  wx.lineWidth = 1;
+  wx.stroke();
+
+  // trail
+  trail.forEach((pt, i) => {
+    const a = i / trail.length;
+    wx.beginPath();
+    wx.arc(pt.x, pt.y, 3 * a, 0, Math.PI * 2);
+    wx.fillStyle = `rgba(255,200,100,${a * 0.5})`;
+    wx.fill();
+  });
+
+  // dot
+  dotX = 60;
+  const dotYNow = waveY(phase) + (Math.random() - 0.5) * 1.5;
+  trail.push({ x: dotX, y: dotYNow });
+  if (trail.length > 18) trail.shift();
+
+  wx.beginPath();
+  wx.arc(dotX, dotYNow, 7, 0, Math.PI * 2);
+  const dotGrad = wx.createRadialGradient(dotX, dotYNow, 0, dotX, dotYNow, 7);
+  dotGrad.addColorStop(0, '#ffe88a');
+  dotGrad.addColorStop(1, '#ff6b35');
+  wx.fillStyle = dotGrad;
+  wx.fill();
+
+  // lives dots
+  for (let i = 0; i < 3; i++) {
+    wx.beginPath();
+    wx.arc(CW - 18 - i * 16, 14, 4, 0, Math.PI * 2);
+    wx.fillStyle = i < lives ? '#ff6b35' : 'rgba(255,255,255,0.1)';
+    wx.fill();
+  }
+
+  // score
+  wx.fillStyle = 'rgba(255,255,255,0.5)';
+  wx.font = '11px system-ui';
+  wx.textAlign = 'left';
+  wx.fillText('×' + score, 10, 20);
+
+  wx.restore();
+}
+
+let lastPhase = 0;
+function gameLoop() {
+  if (gameState === 'playing') {
+    phase += speed;
+    speed = Math.min(0.045, 0.025 + score * 0.0008);
+  }
+  drawGame();
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
+
+function onTap() {
+  if (gameState === 'idle') { resetGame(); return; }
+  if (gameState === 'dead') { resetGame(); return; }
+
+  // check if dot is near peak
+  const peakY = waveY(phase);
+  const dotAtY = waveY(phase);
+  // tap registers a "press" — good if wave is near its local peak
+  // detect peak: derivative ~ 0 (wave going from down to up)
+  const dy = waveY(phase + 0.1) - waveY(phase - 0.1);
+  const nearPeak = Math.abs(dy) < 14; // near inflection top
+
+  // simpler: score based on how close y is to minimum (peak visually = lowest y)
+  const waveAtDot = waveY(phase);
+  const minPossible = MID - AMP - 18;
+  const range = AMP + 18;
+  const closeness = 1 - (waveAtDot - minPossible) / (range * 2);
+
+  if (closeness > 0.55) {
+    score++;
+    if (score > best) { best = score; bestEl.textContent = best; }
+    scoreEl.textContent = score;
+    instrEl.textContent = 'Nice! Keep going · Lives: ' + '♥'.repeat(lives) + '♡'.repeat(3 - lives);
+    // flash green
+    wx.fillStyle = 'rgba(80,255,160,0.15)';
+    wx.fillRect(0, 0, CW, CH);
+  } else if (waveAtDot > CH - 30) {
+    // too close to floor
+    lives = 0;
+    gameState = 'dead';
+    instrEl.textContent = 'Hit the floor! Final score: ' + score;
+  } else {
+    lives = Math.max(0, lives - 1);
+    shakeT = 8;
+    instrEl.textContent = lives > 0
+      ? 'Too far from the peak · Lives: ' + '♥'.repeat(lives) + '♡'.repeat(3 - lives)
+      : 'No lives left!';
+    if (lives === 0) { gameState = 'dead'; }
+  }
+}
+
+document.getElementById('tap-btn').addEventListener('click', e => { e.stopPropagation(); onTap(); });
+wc.addEventListener('click', onTap);
+wc.addEventListener('touchstart', e => { e.preventDefault(); onTap(); }, { passive: false });
+document.getElementById('tap-btn').addEventListener('touchstart', e => { e.preventDefault(); onTap(); }, { passive: false });
+
+// ─── CHIP TOGGLE ─────────────────────────────────────────────────────────
+function toggleChip(el) {
+  el.classList.toggle('active');
+}
+</script>
+</body>
+</html>
